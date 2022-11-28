@@ -1,0 +1,252 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int pole[16][30];
+int m[16][30];
+int p[16][30];
+int t = 0;
+int vr = 0;
+
+int converter(string cell)
+{
+    if (cell == "1") return 1;
+    if (cell == "2") return 2;
+    if (cell == "3") return 3;
+    if (cell == "4") return 4;
+    if (cell == "5") return 5;
+    if (cell == "6") return 6;
+    if (cell == "7") return 7;
+    if (cell == "8") return 8;
+    if (cell == ".") return 0;
+    if (cell == "?") return 10;
+}
+
+int free(int y, int x)
+{
+    int n = 0;
+    if (y+1 < 16 && pole[y+1][x] == 10){n++;}
+    if (x+1 < 30 && pole[y][x+1] == 10){n++;}
+    if (y-1 >= 0 && pole[y-1][x] == 10){n++;}
+    if (x-1 >= 0 && pole[y][x-1] == 10){n++;}
+    if (x+1 < 30 && y+1 < 16 && pole[y+1][x+1] == 10){n++;}
+    if (x+1 < 30 && y-1 >= 0 && pole[y-1][x+1] == 10){n++;}
+    if (x-1 >= 0 && y+1 < 16 && pole[y+1][x-1] == 10){n++;}
+    if (x-1 >= 0 && y-1 >= 0 && pole[y-1][x-1] == 10){n++;}
+    return n;
+}
+
+int mines(int y, int x)
+{
+    int k = 0;
+    if (y+1 < 16 && pole[y+1][x] == -1){k++;}
+    if (x+1 < 30 && pole[y][x+1] == -1){k++;}
+    if (y-1 >= 0 && pole[y-1][x] == -1){k++;}
+    if (x-1 >= 0 && pole[y][x-1] == -1){k++;}
+    if (x+1 < 30 && y+1 < 16 && pole[y+1][x+1] == -1){k++;}
+    if (x+1 < 30 && y-1 >= 0 && pole[y-1][x+1] == -1){k++;}
+    if (x-1 >= 0 && y+1 < 16 && pole[y+1][x-1] == -1){k++;}
+    if (x-1 >= 0 && y-1 >= 0 && pole[y-1][x-1] == -1){k++;}
+    return k;
+}
+
+void open_all(int y, int x)
+{
+    if (y+1 < 16 && pole[y+1][x] == 10){cout << x << " " << y+1 << endl; return;}
+    if (x+1 < 30 && pole[y][x+1] == 10){cout << x+1 << " " << y << endl; return;}
+    if (y-1 >= 0 && pole[y-1][x] == 10){cout << x << " " << y-1 << endl; return;}
+    if (x-1 >= 0 && pole[y][x-1] == 10){cout << x-1 << " " << y << endl; return;}
+    if (x+1 < 30 && y+1 < 16 && pole[y+1][x+1] == 10){cout << x+1 << " " << y+1 << endl; return;}
+    if (x+1 < 30 && y-1 >= 0 && pole[y-1][x+1] == 10){cout << x+1 << " " << y-1 << endl; return;}
+    if (x-1 >= 0 && y+1 < 16 && pole[y+1][x-1] == 10){cout << x-1 << " " << y+1 << endl; return;}
+    if (x-1 >= 0 && y-1 >= 0 && pole[y-1][x-1] == 10){cout << x-1 << " " << y-1 << endl; return;}
+}
+
+void mine_all(int y, int x)
+{
+    if (y+1 < 16 && pole[y+1][x] == 10){pole[y+1][x] = -1;m[y+1][x] = 1; cout << "15 7 " << x << " " << y+1 << endl; return;}
+    if (x+1 < 30 && pole[y][x+1] == 10){pole[y][x+1]= -1;m[y][x+1] = 1; cout << "15 7 " << x+1 << " " << y << endl; return;}
+    if (y-1 >= 0 && pole[y-1][x] == 10){pole[y-1][x]= -1;m[y-1][x] = 1; cout << "15 7 " << x << " " << y-1 << endl; return;}
+    if (x-1 >= 0 && pole[y][x-1] == 10){pole[y][x-1]= -1;m[y][x-1] = 1; cout << "15 7 " << x-1 << " " << y << endl; return;}
+    if (x+1 < 30 && y+1 < 16 && pole[y+1][x+1] == 10){pole[y+1][x+1]= -1;m[y+1][x+1] = 1; cout << "15 7 " << x+1 << " " << y+1 << endl; return;}
+    if (x+1 < 30 && y-1 >= 0 && pole[y-1][x+1] == 10){pole[y-1][x+1]= -1;m[y-1][x+1] = 1; cout << "15 7 " << x+1 << " " << y-1 << endl; return;}
+    if (x-1 >= 0 && y+1 < 16 && pole[y+1][x-1] == 10){pole[y+1][x-1]= -1;m[y+1][x-1] = 1; cout << "15 7 " << x-1 << " " << y+1 << endl; return;}
+    if (x-1 >= 0 && y-1 >= 0 && pole[y-1][x-1] == 10){pole[y-1][x-1]= -1;m[y-1][x-1] = 1; cout << "15 7 " << x-1 << " " << y-1 << endl; return;}
+}
+
+void set_prob(int y, int x)
+{
+    if (y+1 < 16 && pole[y+1][x] == 10){p[y+1][x] = pole[y][x] - mines(y, x);}
+    if (x+1 < 30 && pole[y][x+1] == 10){p[y][x+1] = pole[y][x] - mines(y, x);}
+    if (y-1 >= 0 && pole[y-1][x] == 10){p[y-1][x] = pole[y][x] - mines(y, x);}
+    if (x-1 >= 0 && pole[y][x-1] == 10){p[y][x-1] = pole[y][x] - mines(y, x);}
+    if (x+1 < 30 && y+1 < 16 && pole[y+1][x+1] == 10){p[y+1][x+1] = pole[y][x] - mines(y, x);}
+    if (x+1 < 30 && y-1 >= 0 && pole[y-1][x+1] == 10){p[y-1][x+1] = pole[y][x] - mines(y, x);}
+    if (x-1 >= 0 && y+1 < 16 && pole[y+1][x-1] == 10){p[y+1][x-1] = pole[y][x] - mines(y, x);}
+    if (x-1 >= 0 && y-1 >= 0 && pole[y-1][x-1] == 10){p[y-1][x-1] = pole[y][x] - mines(y, x);}
+}
+
+int prob_n(int y, int x)
+{
+    int n = 0;
+    if (y+1 < 16 && p[y+1][x] > 0){n++;}
+    if (x+1 < 30 && p[y][x+1] > 0){n++;}
+    if (y-1 >= 0 && p[y-1][x] > 0){n++;}
+    if (x-1 >= 0 && p[y][x-1] > 0){n++;}
+    if (x+1 < 30 && y+1 < 16 && p[y+1][x+1] > 0){n++;}
+    if (x+1 < 30 && y-1 >= 0 && p[y-1][x+1] > 0){n++;}
+    if (x-1 >= 0 && y+1 < 16 && p[y+1][x-1] > 0){n++;}
+    if (x-1 >= 0 && y-1 >= 0 && p[y-1][x-1] > 0){n++;}
+    return n;
+}
+
+void op_1(int y, int x)
+{
+    if (y+1 < 16 && p[y+1][x] == 0 && pole[y+1][x] == 10){cout << x << " " << y+1 << endl;return;}
+    if (x+1 < 30 && p[y][x+1] == 0 && pole[y][x+1] == 10){cout << x+1 << " " << y << endl;return;}
+    if (y-1 >= 0 && p[y-1][x] == 0 && pole[y-1][x] == 10){cout << x << " " << y-1 << endl;return;}
+    if (x-1 >= 0 && p[y][x-1] == 0 && pole[y][x-1] == 10){cout << x-1 << " " << y << endl;return;}
+    if (x+1 < 30 && y+1 < 16 && p[y+1][x+1] == 0 && pole[y+1][x+1] == 10){cout << x+1 << " " << y+1 << endl;return;}
+    if (x+1 < 30 && y-1 >= 0 && p[y-1][x+1] == 0 && pole[y-1][x+1] == 10){cout << x+1 << " " << y-1 << endl;return;}
+    if (x-1 >= 0 && y+1 < 16 && p[y+1][x-1] == 0 && pole[y+1][x-1] == 10){cout << x-1 << " " << y+1 << endl;return;}
+    if (x-1 >= 0 && y-1 >= 0 && p[y-1][x-1] == 0 && pole[y-1][x-1] == 10){cout << x-1 << " " << y-1 << endl;return;}
+}
+
+void op_2(int y, int x)
+{
+    if (y+1 < 16 && pole[y+1][x] == 10 && p[y+1][x] == 0){m[y+1][x] = 1;cout << "15 7 " << x << " " << y+1 << endl;return;}
+    if (x+1 < 30 && pole[y][x+1] == 10 && p[y][x+1] == 0){m[y][x+1] = 1;cout << "15 7 " << x+1 << " " << y << endl;return;}
+    if (y-1 >= 0 && pole[y-1][x] == 10 && p[y-1][x] == 0){m[y-1][x] = 1;cout << "15 7 " << x << " " << y-1 << endl;return;}
+    if (x-1 >= 0 && pole[y][x-1] == 10 && p[y][x-1] == 0){m[y][x-1] = 1;cout << "15 7 " << x-1 << " " << y << endl;return;}
+    if (x+1 < 30 && y+1 < 16 && pole[y+1][x+1] == 10 && p[y+1][x+1] == 0){m[y+1][x+1] = 1;cout << "15 7 " << x+1 << " " << y+1 << endl;return;}
+    if (x+1 < 30 && y-1 >= 0 && pole[y-1][x+1] == 10 && p[y-1][x+1] == 0){m[y-1][x+1] = 1;cout << "15 7 " << x+1 << " " << y-1 << endl;return;}
+    if (x-1 >= 0 && y+1 < 16 && pole[y+1][x-1] == 10 && p[y+1][x-1] == 0){m[y+1][x-1] = 1;cout << "15 7 " << x-1 << " " << y+1 << endl;return;}
+    if (x-1 >= 0 && y-1 >= 0 && pole[y-1][x-1] == 10 && p[y-1][x-1] == 0){m[y-1][x-1] = 1;cout << "15 7 " << x-1 << " " << y-1 << endl;return;}
+}
+
+int st_pr(int y, int x)
+{
+    int st = 0;
+    if (y+1 < 16 && p[y+1][x] > 0){st = p[y+1][x];}
+    if (x+1 < 30 && p[y][x+1] > 0){st = p[y][x+1];}
+    if (y-1 >= 0 && p[y-1][x] > 0){st = p[y-1][x];}
+    if (x-1 >= 0 && p[y][x-1] > 0){st = p[y][x-1];}
+    if (x+1 < 30 && y+1 < 16 && p[y+1][x+1] > 0){st = p[y+1][x+1];}
+    if (x+1 < 30 && y-1 >= 0 && p[y-1][x+1] > 0){st = p[y-1][x+1];}
+    if (x-1 >= 0 && y+1 < 16 && p[y+1][x-1] > 0){st = p[y+1][x-1];}
+    if (x-1 >= 0 && y-1 >= 0 && p[y-1][x-1] > 0){st = p[y-1][x-1];}
+    return st;
+}
+
+void pr_open(int y, int x)
+{
+    cerr << pole[y][x] - mines(y, x) << " " << x << " " << y << endl;
+    if (pole[y][x] - mines(y, x) == 1){t++;vr++;op_1(y, x); return;} 
+    if (pole[y][x] - mines(y, x) == 2 && st_pr(y, x) == 1 && free(y, x) - prob_n(y, x) == 1){t++;vr++; op_2(y, x); return;}
+}
+
+void check_neig(int y, int x)
+{
+    vr = 0;
+    if (y+1 < 16 && pole[y+1][x] > 0 && pole[y+1][x] < 9 && prob_n(y+1,x) == 2 && free(y+1,x) > 2){pr_open(y+1, x);if(vr==1)return;}
+    if (x+1 < 30 && pole[y][x+1] > 0 && pole[y][x+1] < 9 && prob_n(y,x+1) == 2 && free(y,x+1) > 2){pr_open(y, x+1);if(vr==1)return;}
+    if (y-1 >= 0 && pole[y-1][x] > 0 && pole[y-1][x] < 9 && prob_n(y-1,x) == 2 && free(y-1,x) > 2){pr_open(y-1, x);if(vr==1)return;}
+    if (x-1 >= 0 && pole[y][x-1] > 0 && pole[y][x-1] < 9 && prob_n(y,x-1) == 2 && free(y,x-1) > 2){pr_open(y, x-1);if(vr==1)return;}
+    if (x+1 < 30 && y+1 < 16 && pole[y+1][x+1] > 0 && pole[y+1][x+1] < 9 && prob_n(y+1,x+1) == 2 && free(y+1,x+1) > 2){pr_open(y+1, x+1);if(vr==1)return;}
+    if (x+1 < 30 && y-1 >= 0 && pole[y-1][x+1] > 0 && pole[y-1][x+1] < 9 && prob_n(y-1,x+1) == 2 && free(y-1,x+1) > 2){pr_open(y-1, x+1);if(vr==1)return;}
+    if (x-1 >= 0 && y+1 < 16 && pole[y+1][x-1] > 0 && pole[y+1][x-1] < 9 && prob_n(y+1,x-1) == 2 && free(y+1,x-1) > 2){pr_open(y+1, x-1);if(vr==1)return;}
+    if (x-1 >= 0 && y-1 >= 0 && pole[y-1][x-1] > 0 && pole[y-1][x-1] < 9 && prob_n(y-1,x-1) == 2 && free(y-1,x-1) > 2){pr_open(y-1, x-1);if(vr==1)return;}
+}
+
+void p_null()
+{
+    for (int i = 0; i < 16; i++) {
+            for (int j = 0; j < 30; j++) {
+                p[i][j] = 0; 
+            }
+        }
+}
+
+int main()
+{
+    for (int i = 0; i < 16; i++) {
+            for (int j = 0; j < 30; j++) 
+            {
+                m[i][j]=0; 
+            }
+        }
+
+    int a = 0;
+
+    // game loop
+    while (1) {
+        for (int i = 0; i < 16; i++) {
+            for (int j = 0; j < 30; j++) {
+                string cell; // '?' if unknown, '.' if no mines nearby, '1'-'8' otherwise
+                cin >> cell; cin.ignore();
+                pole[i][j] = converter(cell);
+            }
+        }
+
+        for (int i = 0; i < 16; i++) {
+            for (int j = 0; j < 30; j++) {
+                if (m[i][j] == 1) pole[i][j] = -1; 
+                p[i][j] = 0; 
+            }
+        }
+
+        if(a == 0)
+        {
+            cout << "15 7 " << endl;
+            a++;
+        }
+
+        t = 0;
+        int f = 0;
+        for (int i = 0; i < 16; i++) {
+            for (int j = 0; j < 30; j++) {
+                if (pole[i][j] > 0 && pole[i][j] < 9 && free(i,j) != 0)
+                {
+                    if (free(i, j) + mines(i, j) == pole[i][j]) {f++;t++; mine_all(i, j); break;}
+                    else if(mines(i,j) == pole[i][j]){f++;t++; open_all(i, j);break;}
+                }
+            }
+            if (f == 1)break;
+        }
+
+        if (t == 0)
+        {
+            for (int i = 0; i < 16; i++) {
+                for (int j = 0; j < 30; j++) {
+                    if (pole[i][j] - mines(i, j) == free(i, j) - 1)
+                        {
+                            p_null();
+                            set_prob(i, j);
+                            check_neig(i, j);
+                            cerr << j << " " << i << " " << prob_n(i, j) << " " << st_pr(i, j) << endl;
+                            if (t==1)break;
+                        }
+                }
+                if (t == 1) break;
+            }
+        }
+
+        int fin = 0;
+        for (int i = 0; i < 16; i++) {
+            for (int j = 0; j < 30; j++) {
+                if (m[i][j] == 1) fin++; 
+            }
+        }
+        if (fin == 99)
+        {
+            for (int i = 0; i < 16; i++) {
+                for (int j = 0; j < 30; j++) {
+                    if (pole[i][j] == 10) cout << j << " " << i << endl; 
+            }
+            }
+        }
+    }
+}
